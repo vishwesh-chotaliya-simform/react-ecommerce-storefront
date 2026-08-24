@@ -44,6 +44,7 @@ Vite proxies `/api/*` to the API and strips the prefix — the backend serves `/
 | `CLAUDE.md` | API contracts, backend quirks, stack decisions, conventions |
 | `docs/ROADMAP.md` | The eight build phases |
 | `docs/PROMPTS.md` | Per-phase session prompts and acceptance checks |
+| `docs/PROJECT-WRITEUP.md` | How the project was built, and the React concepts it covers |
 | `docs/openapi.json` | Spec extracted from the backend's `openApiDocument` |
 | `src/lib/api-client.ts` | Bearer token, envelope unwrapping, `ApiError`, global 401 |
 | `src/lib/api-types.d.ts` | Generated request/response types — do not hand-edit |
