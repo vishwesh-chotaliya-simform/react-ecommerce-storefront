@@ -1,0 +1,13 @@
+dist
+coverage
+node_modules
+package-lock.json
+
+# Generated — never hand-edit, never reformat.
+src/lib/api-types.d.ts
+docs/openapi.json
+
+# Hand-authored context docs. Prettier realigns markdown tables and rewraps prose, which
+# creates noise in files whose wording is deliberate.
+*.md
+docs/

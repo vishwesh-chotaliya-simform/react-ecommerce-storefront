@@ -1,0 +1,4491 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "E-commerce API",
+    "version": "1.0.0",
+    "description": "API documentation for the e-commerce backend (users, addresses, cart, orders, products, reviews). Protected endpoints require a bearer JWT obtained from POST /users/signin — use the Authorize button above."
+  },
+  "servers": [
+    {
+      "url": "/"
+    }
+  ],
+  "tags": [
+    {
+      "name": "Users",
+      "description": "Signup, signin, and account management"
+    },
+    {
+      "name": "Addresses",
+      "description": "Manage the current user's shipping addresses"
+    },
+    {
+      "name": "Cart",
+      "description": "Manage the current user's shopping cart"
+    },
+    {
+      "name": "Orders",
+      "description": "Place and view orders"
+    },
+    {
+      "name": "Products - Public",
+      "description": "Public product catalog (no auth required)"
+    },
+    {
+      "name": "Products - Admin",
+      "description": "Seller/admin product management (requires admin role)"
+    },
+    {
+      "name": "Reviews",
+      "description": "Product reviews and ratings"
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "description": "JWT obtained from POST /users/signin, sent as `Authorization: Bearer <token>`."
+      }
+    },
+    "schemas": {},
+    "parameters": {}
+  },
+  "paths": {
+    "/users/signup": {
+      "post": {
+        "tags": [
+          "Users"
+        ],
+        "summary": "Register a new customer account",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "minLength": 2
+                  },
+                  "email": {
+                    "type": "string",
+                    "format": "email"
+                  },
+                  "password": {
+                    "type": "string",
+                    "minLength": 8
+                  }
+                },
+                "required": [
+                  "name",
+                  "email",
+                  "password"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "User registered successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Success"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "name": {
+                          "type": "string",
+                          "example": "Jane Doe"
+                        },
+                        "email": {
+                          "type": "string",
+                          "example": "jane.doe@example.com"
+                        },
+                        "type": {
+                          "type": "string",
+                          "enum": [
+                            "admin",
+                            "customer"
+                          ],
+                          "example": "customer"
+                        }
+                      },
+                      "required": [
+                        "name",
+                        "email",
+                        "type"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "message",
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Email is already registered"
+          }
+        }
+      }
+    },
+    "/users/signin": {
+      "post": {
+        "tags": [
+          "Users"
+        ],
+        "summary": "Sign in and receive a bearer JWT",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "format": "email"
+                  },
+                  "password": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                },
+                "required": [
+                  "email",
+                  "password"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Signed in successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Success"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "user": {
+                          "type": "object",
+                          "properties": {
+                            "_id": {
+                              "type": "string",
+                              "example": "652f1c2e8b1d4e2a1c9e4b3a"
+                            },
+                            "name": {
+                              "type": "string",
+                              "example": "Jane Doe"
+                            },
+                            "email": {
+                              "type": "string",
+                              "example": "jane.doe@example.com"
+                            },
+                            "type": {
+                              "type": "string",
+                              "enum": [
+                                "admin",
+                                "customer"
+                              ],
+                              "example": "customer"
+                            },
+                            "cart": {
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "product": {
+                                    "type": "object",
+                                    "properties": {
+                                      "_id": {
+                                        "type": "string",
+                                        "example": "652f1c2e8b1d4e2a1c9e4b3a"
+                                      },
+                                      "title": {
+                                        "type": "string",
+                                        "example": "Wireless Mouse"
+                                      },
+                                      "price": {
+                                        "type": "number",
+                                        "example": 799
+                                      },
+                                      "imageURL": {
+                                        "type": "string",
+                                        "example": "https://example.com/images/mouse.jpg"
+                                      },
+                                      "stock": {
+                                        "type": "number",
+                                        "example": 25
+                                      }
+                                    },
+                                    "required": [
+                                      "_id",
+                                      "title",
+                                      "price",
+                                      "imageURL",
+                                      "stock"
+                                    ]
+                                  },
+                                  "quantity": {
+                                    "type": "number",
+                                    "example": 2
+                                  }
+                                },
+                                "required": [
+                                  "product",
+                                  "quantity"
+                                ]
+                              }
+                            },
+                            "addresses": {
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "_id": {
+                                    "type": "string",
+                                    "example": "652f1c2e8b1d4e2a1c9e4b3a"
+                                  },
+                                  "addressLine1": {
+                                    "type": "string",
+                                    "example": "221B Baker Street"
+                                  },
+                                  "city": {
+                                    "type": "string",
+                                    "example": "London"
+                                  },
+                                  "state": {
+                                    "type": "string",
+                                    "example": "Greater London"
+                                  },
+                                  "pincode": {
+                                    "type": "string",
+                                    "example": "560001"
+                                  },
+                                  "tag": {
+                                    "type": "string",
+                                    "enum": [
+                                      "home",
+                                      "office",
+                                      "work"
+                                    ],
+                                    "example": "home"
+                                  },
+                                  "isDefault": {
+                                    "type": "boolean",
+                                    "example": true
+                                  }
+                                },
+                                "required": [
+                                  "_id",
+                                  "addressLine1",
+                                  "city",
+                                  "state",
+                                  "pincode",
+                                  "isDefault"
+                                ]
+                              }
+                            },
+                            "createdAt": {
+                              "type": "string",
+                              "example": "2026-01-15T10:00:00.000Z"
+                            },
+                            "updatedAt": {
+                              "type": "string",
+                              "example": "2026-01-15T10:00:00.000Z"
+                            }
+                          },
+                          "required": [
+                            "_id",
+                            "name",
+                            "email",
+                            "type",
+                            "cart",
+                            "addresses",
+                            "createdAt",
+                            "updatedAt"
+                          ]
+                        },
+                        "token": {
+                          "type": "string",
+                          "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                        }
+                      },
+                      "required": [
+                        "user",
+                        "token"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "message",
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid email or password"
+          }
+        }
+      }
+    },
+    "/users/signout": {
+      "post": {
+        "tags": [
+          "Users"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "Sign out (invalidates the current JWT via tokenVersion bump)",
+        "responses": {
+          "200": {
+            "description": "Signed out successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Success"
+                    },
+                    "data": {
+                      "nullable": true
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "message",
+                    "data"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/users/me": {
+      "get": {
+        "tags": [
+          "Users"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "Get the current authenticated user",
+        "responses": {
+          "200": {
+            "description": "Current user fetched successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Success"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "_id": {
+                          "type": "string",
+                          "example": "652f1c2e8b1d4e2a1c9e4b3a"
+                        },
+                        "name": {
+                          "type": "string",
+                          "example": "Jane Doe"
+                        },
+                        "email": {
+                          "type": "string",
+                          "example": "jane.doe@example.com"
+                        },
+                        "type": {
+                          "type": "string",
+                          "enum": [
+                            "admin",
+                            "customer"
+                          ],
+                          "example": "customer"
+                        },
+                        "cart": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "product": {
+                                "type": "object",
+                                "properties": {
+                                  "_id": {
+                                    "type": "string",
+                                    "example": "652f1c2e8b1d4e2a1c9e4b3a"
+                                  },
+                                  "title": {
+                                    "type": "string",
+                                    "example": "Wireless Mouse"
+                                  },
+                                  "price": {
+                                    "type": "number",
+                                    "example": 799
+                                  },
+                                  "imageURL": {
+                                    "type": "string",
+                                    "example": "https://example.com/images/mouse.jpg"
+                                  },
+                                  "stock": {
+                                    "type": "number",
+                                    "example": 25
+                                  }
+                                },
+                                "required": [
+                                  "_id",
+                                  "title",
+                                  "price",
+                                  "imageURL",
+                                  "stock"
+                                ]
+                              },
+                              "quantity": {
+                                "type": "number",
+                                "example": 2
+                              }
+                            },
+                            "required": [
+                              "product",
+                              "quantity"
+                            ]
+                          }
+                        },
+                        "addresses": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "_id": {
+                                "type": "string",
+                                "example": "652f1c2e8b1d4e2a1c9e4b3a"
+                              },
+                              "addressLine1": {
+                                "type": "string",
+                                "example": "221B Baker Street"
+                              },
+                              "city": {
+                                "type": "string",
+                                "example": "London"
+                              },
+                              "state": {
+                                "type": "string",
+                                "example": "Greater London"
+                              },
+                              "pincode": {
+                                "type": "string",
+                                "example": "560001"
+                              },
+                              "tag": {
+                                "type": "string",
+                                "enum": [
+                                  "home",
+                                  "office",
+                                  "work"
+                                ],
+                                "example": "home"
+                              },
+                              "isDefault": {
+                                "type": "boolean",
+                                "example": true
+                              }
+                            },
+                            "required": [
+                              "_id",
+                              "addressLine1",
+                              "city",
+                              "state",
+                              "pincode",
+                              "isDefault"
+                            ]
+                          }
+                        },
+                        "createdAt": {
+                          "type": "string",
+                          "example": "2026-01-15T10:00:00.000Z"
+                        },
+                        "updatedAt": {
+                          "type": "string",
+                          "example": "2026-01-15T10:00:00.000Z"
+                        }
+                      },
+                      "required": [
+                        "_id",
+                        "name",
+                        "email",
+                        "type",
+                        "cart",
+                        "addresses",
+                        "createdAt",
+                        "updatedAt"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "message",
+                    "data"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/users/forgot-password": {
+      "post": {
+        "tags": [
+          "Users"
+        ],
+        "summary": "Request a password-reset OTP",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "format": "email"
+                  }
+                },
+                "required": [
+                  "email"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OTP generated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Success"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "otp": {
+                          "type": "string",
+                          "example": "482913",
+                          "description": "Temporary stand-in until email delivery is wired up"
+                        },
+                        "expiresInMinutes": {
+                          "type": "number",
+                          "example": 10
+                        }
+                      },
+                      "required": [
+                        "otp",
+                        "expiresInMinutes"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "message",
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "User not found with this email"
+          }
+        }
+      }
+    },
+    "/users/reset-password": {
+      "post": {
+        "tags": [
+          "Users"
+        ],
+        "summary": "Reset password using the OTP from /users/forgot-password",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "format": "email"
+                  },
+                  "otp": {
+                    "type": "string",
+                    "pattern": "^\\d{6}$"
+                  },
+                  "newPassword": {
+                    "type": "string",
+                    "minLength": 8
+                  }
+                },
+                "required": [
+                  "email",
+                  "otp",
+                  "newPassword"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Password reset successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Success"
+                    },
+                    "data": {
+                      "nullable": true
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "message",
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid or expired OTP"
+          },
+          "404": {
+            "description": "User not found with this email"
+          }
+        }
+      }
+    },
+    "/users/change-password": {
+      "post": {
+        "tags": [
+          "Users"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "Change password while authenticated",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "currentPassword": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "newPassword": {
+                    "type": "string",
+                    "minLength": 8
+                  }
+                },
+                "required": [
+                  "currentPassword",
+                  "newPassword"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Password changed successfully, returns a new token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Success"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "user": {
+                          "type": "object",
+                          "properties": {
+                            "_id": {
+                              "type": "string",
+                              "example": "652f1c2e8b1d4e2a1c9e4b3a"
+                            },
+                            "name": {
+                              "type": "string",
+                              "example": "Jane Doe"
+                            },
+                            "email": {
+                              "type": "string",
+                              "example": "jane.doe@example.com"
+                            },
+                            "type": {
+                              "type": "string",
+                              "enum": [
+                                "admin",
+                                "customer"
+                              ],
+                              "example": "customer"
+                            },
+                            "cart": {
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "product": {
+                                    "type": "object",
+                                    "properties": {
+                                      "_id": {
+                                        "type": "string",
+                                        "example": "652f1c2e8b1d4e2a1c9e4b3a"
+                                      },
+                                      "title": {
+                                        "type": "string",
+                                        "example": "Wireless Mouse"
+                                      },
+                                      "price": {
+                                        "type": "number",
+                                        "example": 799
+                                      },
+                                      "imageURL": {
+                                        "type": "string",
+                                        "example": "https://example.com/images/mouse.jpg"
+                                      },
+                                      "stock": {
+                                        "type": "number",
+                                        "example": 25
+                                      }
+                                    },
+                                    "required": [
+                                      "_id",
+                                      "title",
+                                      "price",
+                                      "imageURL",
+                                      "stock"
+                                    ]
+                                  },
+                                  "quantity": {
+                                    "type": "number",
+                                    "example": 2
+                                  }
+                                },
+                                "required": [
+                                  "product",
+                                  "quantity"
+                                ]
+                              }
+                            },
+                            "addresses": {
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "_id": {
+                                    "type": "string",
+                                    "example": "652f1c2e8b1d4e2a1c9e4b3a"
+                                  },
+                                  "addressLine1": {
+                                    "type": "string",
+                                    "example": "221B Baker Street"
+                                  },
+                                  "city": {
+                                    "type": "string",
+                                    "example": "London"
+                                  },
+                                  "state": {
+                                    "type": "string",
+                                    "example": "Greater London"
+                                  },
+                                  "pincode": {
+                                    "type": "string",
+                                    "example": "560001"
+                                  },
+                                  "tag": {
+                                    "type": "string",
+                                    "enum": [
+                                      "home",
+                                      "office",
+                                      "work"
+                                    ],
+                                    "example": "home"
+                                  },
+                                  "isDefault": {
+                                    "type": "boolean",
+                                    "example": true
+                                  }
+                                },
+                                "required": [
+                                  "_id",
+                                  "addressLine1",
+                                  "city",
+                                  "state",
+                                  "pincode",
+                                  "isDefault"
+                                ]
+                              }
+                            },
+                            "createdAt": {
+                              "type": "string",
+                              "example": "2026-01-15T10:00:00.000Z"
+                            },
+                            "updatedAt": {
+                              "type": "string",
+                              "example": "2026-01-15T10:00:00.000Z"
+                            }
+                          },
+                          "required": [
+                            "_id",
+                            "name",
+                            "email",
+                            "type",
+                            "cart",
+                            "addresses",
+                            "createdAt",
+                            "updatedAt"
+                          ]
+                        },
+                        "token": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "user",
+                        "token"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "message",
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Current password is incorrect"
+          }
+        }
+      }
+    },
+    "/users/me/addresses": {
+      "get": {
+        "tags": [
+          "Addresses"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "List the current user's addresses",
+        "responses": {
+          "200": {
+            "description": "Addresses fetched successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Success"
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "_id": {
+                            "type": "string",
+                            "example": "652f1c2e8b1d4e2a1c9e4b3a"
+                          },
+                          "addressLine1": {
+                            "type": "string",
+                            "example": "221B Baker Street"
+                          },
+                          "city": {
+                            "type": "string",
+                            "example": "London"
+                          },
+                          "state": {
+                            "type": "string",
+                            "example": "Greater London"
+                          },
+                          "pincode": {
+                            "type": "string",
+                            "example": "560001"
+                          },
+                          "tag": {
+                            "type": "string",
+                            "enum": [
+                              "home",
+                              "office",
+                              "work"
+                            ],
+                            "example": "home"
+                          },
+                          "isDefault": {
+                            "type": "boolean",
+                            "example": true
+                          }
+                        },
+                        "required": [
+                          "_id",
+                          "addressLine1",
+                          "city",
+                          "state",
+                          "pincode",
+                          "isDefault"
+                        ]
+                      }
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "message",
+                    "data"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Addresses"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "Add a new address (max 4 per user)",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "addressLine1": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "city": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "state": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "pincode": {
+                    "type": "string",
+                    "pattern": "^\\d{6}$"
+                  },
+                  "tag": {
+                    "type": "string",
+                    "enum": [
+                      "home",
+                      "office",
+                      "work"
+                    ]
+                  },
+                  "isDefault": {
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "addressLine1",
+                  "city",
+                  "state",
+                  "pincode"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Address added successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Success"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "_id": {
+                          "type": "string",
+                          "example": "652f1c2e8b1d4e2a1c9e4b3a"
+                        },
+                        "addressLine1": {
+                          "type": "string",
+                          "example": "221B Baker Street"
+                        },
+                        "city": {
+                          "type": "string",
+                          "example": "London"
+                        },
+                        "state": {
+                          "type": "string",
+                          "example": "Greater London"
+                        },
+                        "pincode": {
+                          "type": "string",
+                          "example": "560001"
+                        },
+                        "tag": {
+                          "type": "string",
+                          "enum": [
+                            "home",
+                            "office",
+                            "work"
+                          ],
+                          "example": "home"
+                        },
+                        "isDefault": {
+                          "type": "boolean",
+                          "example": true
+                        }
+                      },
+                      "required": [
+                        "_id",
+                        "addressLine1",
+                        "city",
+                        "state",
+                        "pincode",
+                        "isDefault"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "message",
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Maximum of 4 addresses allowed, or invalid body"
+          }
+        }
+      }
+    },
+    "/users/me/addresses/{addressId}": {
+      "patch": {
+        "tags": [
+          "Addresses"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "Update an address",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "example": "652f1c2e8b1d4e2a1c9e4b3a",
+              "description": "Address id"
+            },
+            "required": true,
+            "description": "Address id",
+            "name": "addressId",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "addressLine1": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "city": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "state": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "pincode": {
+                    "type": "string",
+                    "pattern": "^\\d{6}$"
+                  },
+                  "tag": {
+                    "type": "string",
+                    "enum": [
+                      "home",
+                      "office",
+                      "work"
+                    ]
+                  },
+                  "isDefault": {
+                    "type": "boolean"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Address updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Success"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "_id": {
+                          "type": "string",
+                          "example": "652f1c2e8b1d4e2a1c9e4b3a"
+                        },
+                        "addressLine1": {
+                          "type": "string",
+                          "example": "221B Baker Street"
+                        },
+                        "city": {
+                          "type": "string",
+                          "example": "London"
+                        },
+                        "state": {
+                          "type": "string",
+                          "example": "Greater London"
+                        },
+                        "pincode": {
+                          "type": "string",
+                          "example": "560001"
+                        },
+                        "tag": {
+                          "type": "string",
+                          "enum": [
+                            "home",
+                            "office",
+                            "work"
+                          ],
+                          "example": "home"
+                        },
+                        "isDefault": {
+                          "type": "boolean",
+                          "example": true
+                        }
+                      },
+                      "required": [
+                        "_id",
+                        "addressLine1",
+                        "city",
+                        "state",
+                        "pincode",
+                        "isDefault"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "message",
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Address not found"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Addresses"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "Delete an address",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "example": "652f1c2e8b1d4e2a1c9e4b3a",
+              "description": "Address id"
+            },
+            "required": true,
+            "description": "Address id",
+            "name": "addressId",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Address deleted successfully, returns remaining addresses",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Success"
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "_id": {
+                            "type": "string",
+                            "example": "652f1c2e8b1d4e2a1c9e4b3a"
+                          },
+                          "addressLine1": {
+                            "type": "string",
+                            "example": "221B Baker Street"
+                          },
+                          "city": {
+                            "type": "string",
+                            "example": "London"
+                          },
+                          "state": {
+                            "type": "string",
+                            "example": "Greater London"
+                          },
+                          "pincode": {
+                            "type": "string",
+                            "example": "560001"
+                          },
+                          "tag": {
+                            "type": "string",
+                            "enum": [
+                              "home",
+                              "office",
+                              "work"
+                            ],
+                            "example": "home"
+                          },
+                          "isDefault": {
+                            "type": "boolean",
+                            "example": true
+                          }
+                        },
+                        "required": [
+                          "_id",
+                          "addressLine1",
+                          "city",
+                          "state",
+                          "pincode",
+                          "isDefault"
+                        ]
+                      }
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "message",
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Address not found"
+          }
+        }
+      }
+    },
+    "/users/me/addresses/{addressId}/default": {
+      "patch": {
+        "tags": [
+          "Addresses"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "Set an address as the default",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "example": "652f1c2e8b1d4e2a1c9e4b3a",
+              "description": "Address id"
+            },
+            "required": true,
+            "description": "Address id",
+            "name": "addressId",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default address updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Success"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "_id": {
+                          "type": "string",
+                          "example": "652f1c2e8b1d4e2a1c9e4b3a"
+                        },
+                        "addressLine1": {
+                          "type": "string",
+                          "example": "221B Baker Street"
+                        },
+                        "city": {
+                          "type": "string",
+                          "example": "London"
+                        },
+                        "state": {
+                          "type": "string",
+                          "example": "Greater London"
+                        },
+                        "pincode": {
+                          "type": "string",
+                          "example": "560001"
+                        },
+                        "tag": {
+                          "type": "string",
+                          "enum": [
+                            "home",
+                            "office",
+                            "work"
+                          ],
+                          "example": "home"
+                        },
+                        "isDefault": {
+                          "type": "boolean",
+                          "example": true
+                        }
+                      },
+                      "required": [
+                        "_id",
+                        "addressLine1",
+                        "city",
+                        "state",
+                        "pincode",
+                        "isDefault"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "message",
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Address not found"
+          }
+        }
+      }
+    },
+    "/cart": {
+      "get": {
+        "tags": [
+          "Cart"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "Get the current user's cart",
+        "responses": {
+          "200": {
+            "description": "Cart fetched successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Success"
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "product": {
+                            "type": "object",
+                            "properties": {
+                              "_id": {
+                                "type": "string",
+                                "example": "652f1c2e8b1d4e2a1c9e4b3a"
+                              },
+                              "title": {
+                                "type": "string",
+                                "example": "Wireless Mouse"
+                              },
+                              "price": {
+                                "type": "number",
+                                "example": 799
+                              },
+                              "imageURL": {
+                                "type": "string",
+                                "example": "https://example.com/images/mouse.jpg"
+                              },
+                              "stock": {
+                                "type": "number",
+                                "example": 25
+                              }
+                            },
+                            "required": [
+                              "_id",
+                              "title",
+                              "price",
+                              "imageURL",
+                              "stock"
+                            ]
+                          },
+                          "quantity": {
+                            "type": "number",
+                            "example": 2
+                          }
+                        },
+                        "required": [
+                          "product",
+                          "quantity"
+                        ]
+                      }
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "message",
+                    "data"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Cart"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "Add a product to the cart (or increase its quantity)",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "productId": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "quantity": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "exclusiveMinimum": true,
+                    "default": 1
+                  }
+                },
+                "required": [
+                  "productId"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Item added to cart successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Success"
+                    },
+                    "data": {
+                      "nullable": true
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "message",
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Requested quantity exceeds available stock"
+          },
+          "404": {
+            "description": "Product not found"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Cart"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "Clear the entire cart",
+        "responses": {
+          "200": {
+            "description": "Cart cleared successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Success"
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "product": {
+                            "type": "object",
+                            "properties": {
+                              "_id": {
+                                "type": "string",
+                                "example": "652f1c2e8b1d4e2a1c9e4b3a"
+                              },
+                              "title": {
+                                "type": "string",
+                                "example": "Wireless Mouse"
+                              },
+                              "price": {
+                                "type": "number",
+                                "example": 799
+                              },
+                              "imageURL": {
+                                "type": "string",
+                                "example": "https://example.com/images/mouse.jpg"
+                              },
+                              "stock": {
+                                "type": "number",
+                                "example": 25
+                              }
+                            },
+                            "required": [
+                              "_id",
+                              "title",
+                              "price",
+                              "imageURL",
+                              "stock"
+                            ]
+                          },
+                          "quantity": {
+                            "type": "number",
+                            "example": 2
+                          }
+                        },
+                        "required": [
+                          "product",
+                          "quantity"
+                        ]
+                      }
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "message",
+                    "data"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/cart/{productId}": {
+      "patch": {
+        "tags": [
+          "Cart"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "Update the quantity of a cart item",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "example": "652f1c2e8b1d4e2a1c9e4b3a",
+              "description": "Product id"
+            },
+            "required": true,
+            "description": "Product id",
+            "name": "productId",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "quantity": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "exclusiveMinimum": true
+                  }
+                },
+                "required": [
+                  "quantity"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Cart item updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Success"
+                    },
+                    "data": {
+                      "nullable": true
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "message",
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Requested quantity exceeds available stock"
+          },
+          "404": {
+            "description": "Product not found in cart"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Cart"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "Remove a product from the cart",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "example": "652f1c2e8b1d4e2a1c9e4b3a",
+              "description": "Product id"
+            },
+            "required": true,
+            "description": "Product id",
+            "name": "productId",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Item removed from cart successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Success"
+                    },
+                    "data": {
+                      "nullable": true
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "message",
+                    "data"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/orders": {
+      "post": {
+        "tags": [
+          "Orders"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "Place an order from the current cart",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "addressId": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                },
+                "required": [
+                  "addressId"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Order placed successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Success"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "_id": {
+                          "type": "string",
+                          "example": "652f1c2e8b1d4e2a1c9e4b3b"
+                        },
+                        "userId": {
+                          "type": "string",
+                          "example": "652f1c2e8b1d4e2a1c9e4b3a"
+                        },
+                        "items": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "product": {
+                                "type": "string",
+                                "example": "652f1c2e8b1d4e2a1c9e4b3a"
+                              },
+                              "title": {
+                                "type": "string",
+                                "example": "Wireless Mouse"
+                              },
+                              "price": {
+                                "type": "number",
+                                "example": 799
+                              },
+                              "imageURL": {
+                                "type": "string",
+                                "example": "https://example.com/images/mouse.jpg"
+                              },
+                              "quantity": {
+                                "type": "number",
+                                "example": 2
+                              }
+                            },
+                            "required": [
+                              "product",
+                              "title",
+                              "price",
+                              "imageURL",
+                              "quantity"
+                            ]
+                          }
+                        },
+                        "totalAmount": {
+                          "type": "number",
+                          "example": 1598
+                        },
+                        "shippingAddress": {
+                          "type": "object",
+                          "properties": {
+                            "addressId": {
+                              "type": "string",
+                              "example": "652f1c2e8b1d4e2a1c9e4b3a"
+                            },
+                            "addressLine1": {
+                              "type": "string",
+                              "example": "221B Baker Street"
+                            },
+                            "city": {
+                              "type": "string",
+                              "example": "London"
+                            },
+                            "state": {
+                              "type": "string",
+                              "example": "Greater London"
+                            },
+                            "pincode": {
+                              "type": "string",
+                              "example": "560001"
+                            },
+                            "tag": {
+                              "type": "string",
+                              "enum": [
+                                "home",
+                                "office",
+                                "work"
+                              ],
+                              "example": "home"
+                            }
+                          },
+                          "required": [
+                            "addressId",
+                            "addressLine1",
+                            "city",
+                            "state",
+                            "pincode"
+                          ]
+                        },
+                        "createdAt": {
+                          "type": "string",
+                          "example": "2026-01-15T10:00:00.000Z"
+                        },
+                        "updatedAt": {
+                          "type": "string",
+                          "example": "2026-01-15T10:00:00.000Z"
+                        }
+                      },
+                      "required": [
+                        "_id",
+                        "userId",
+                        "items",
+                        "totalAmount",
+                        "shippingAddress",
+                        "createdAt",
+                        "updatedAt"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "message",
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Cart is empty, or insufficient stock, or no saved addresses"
+          },
+          "404": {
+            "description": "Address not found"
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "Orders"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "List the current user's orders",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "example": "1",
+              "description": "Page number (default 1)"
+            },
+            "required": false,
+            "description": "Page number (default 1)",
+            "name": "page",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "example": "10",
+              "description": "Items per page (default 10, max 100)"
+            },
+            "required": false,
+            "description": "Items per page (default 10, max 100)",
+            "name": "limit",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Orders fetched successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Success"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "orders": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "_id": {
+                                "type": "string",
+                                "example": "652f1c2e8b1d4e2a1c9e4b3b"
+                              },
+                              "userId": {
+                                "type": "string",
+                                "example": "652f1c2e8b1d4e2a1c9e4b3a"
+                              },
+                              "items": {
+                                "type": "array",
+                                "items": {
+                                  "type": "object",
+                                  "properties": {
+                                    "product": {
+                                      "type": "string",
+                                      "example": "652f1c2e8b1d4e2a1c9e4b3a"
+                                    },
+                                    "title": {
+                                      "type": "string",
+                                      "example": "Wireless Mouse"
+                                    },
+                                    "price": {
+                                      "type": "number",
+                                      "example": 799
+                                    },
+                                    "imageURL": {
+                                      "type": "string",
+                                      "example": "https://example.com/images/mouse.jpg"
+                                    },
+                                    "quantity": {
+                                      "type": "number",
+                                      "example": 2
+                                    }
+                                  },
+                                  "required": [
+                                    "product",
+                                    "title",
+                                    "price",
+                                    "imageURL",
+                                    "quantity"
+                                  ]
+                                }
+                              },
+                              "totalAmount": {
+                                "type": "number",
+                                "example": 1598
+                              },
+                              "shippingAddress": {
+                                "type": "object",
+                                "properties": {
+                                  "addressId": {
+                                    "type": "string",
+                                    "example": "652f1c2e8b1d4e2a1c9e4b3a"
+                                  },
+                                  "addressLine1": {
+                                    "type": "string",
+                                    "example": "221B Baker Street"
+                                  },
+                                  "city": {
+                                    "type": "string",
+                                    "example": "London"
+                                  },
+                                  "state": {
+                                    "type": "string",
+                                    "example": "Greater London"
+                                  },
+                                  "pincode": {
+                                    "type": "string",
+                                    "example": "560001"
+                                  },
+                                  "tag": {
+                                    "type": "string",
+                                    "enum": [
+                                      "home",
+                                      "office",
+                                      "work"
+                                    ],
+                                    "example": "home"
+                                  }
+                                },
+                                "required": [
+                                  "addressId",
+                                  "addressLine1",
+                                  "city",
+                                  "state",
+                                  "pincode"
+                                ]
+                              },
+                              "createdAt": {
+                                "type": "string",
+                                "example": "2026-01-15T10:00:00.000Z"
+                              },
+                              "updatedAt": {
+                                "type": "string",
+                                "example": "2026-01-15T10:00:00.000Z"
+                              }
+                            },
+                            "required": [
+                              "_id",
+                              "userId",
+                              "items",
+                              "totalAmount",
+                              "shippingAddress",
+                              "createdAt",
+                              "updatedAt"
+                            ]
+                          }
+                        },
+                        "pagination": {
+                          "type": "object",
+                          "properties": {
+                            "total": {
+                              "type": "number",
+                              "example": 42
+                            },
+                            "page": {
+                              "type": "number",
+                              "example": 1
+                            },
+                            "limit": {
+                              "type": "number",
+                              "example": 10
+                            },
+                            "totalPages": {
+                              "type": "number",
+                              "example": 5
+                            }
+                          },
+                          "required": [
+                            "total",
+                            "page",
+                            "limit",
+                            "totalPages"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "orders",
+                        "pagination"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "message",
+                    "data"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/orders/{id}": {
+      "get": {
+        "tags": [
+          "Orders"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "Get a single order by id",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "example": "652f1c2e8b1d4e2a1c9e4b3a",
+              "description": "Order id"
+            },
+            "required": true,
+            "description": "Order id",
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Order fetched successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Success"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "_id": {
+                          "type": "string",
+                          "example": "652f1c2e8b1d4e2a1c9e4b3b"
+                        },
+                        "userId": {
+                          "type": "string",
+                          "example": "652f1c2e8b1d4e2a1c9e4b3a"
+                        },
+                        "items": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "product": {
+                                "type": "string",
+                                "example": "652f1c2e8b1d4e2a1c9e4b3a"
+                              },
+                              "title": {
+                                "type": "string",
+                                "example": "Wireless Mouse"
+                              },
+                              "price": {
+                                "type": "number",
+                                "example": 799
+                              },
+                              "imageURL": {
+                                "type": "string",
+                                "example": "https://example.com/images/mouse.jpg"
+                              },
+                              "quantity": {
+                                "type": "number",
+                                "example": 2
+                              }
+                            },
+                            "required": [
+                              "product",
+                              "title",
+                              "price",
+                              "imageURL",
+                              "quantity"
+                            ]
+                          }
+                        },
+                        "totalAmount": {
+                          "type": "number",
+                          "example": 1598
+                        },
+                        "shippingAddress": {
+                          "type": "object",
+                          "properties": {
+                            "addressId": {
+                              "type": "string",
+                              "example": "652f1c2e8b1d4e2a1c9e4b3a"
+                            },
+                            "addressLine1": {
+                              "type": "string",
+                              "example": "221B Baker Street"
+                            },
+                            "city": {
+                              "type": "string",
+                              "example": "London"
+                            },
+                            "state": {
+                              "type": "string",
+                              "example": "Greater London"
+                            },
+                            "pincode": {
+                              "type": "string",
+                              "example": "560001"
+                            },
+                            "tag": {
+                              "type": "string",
+                              "enum": [
+                                "home",
+                                "office",
+                                "work"
+                              ],
+                              "example": "home"
+                            }
+                          },
+                          "required": [
+                            "addressId",
+                            "addressLine1",
+                            "city",
+                            "state",
+                            "pincode"
+                          ]
+                        },
+                        "createdAt": {
+                          "type": "string",
+                          "example": "2026-01-15T10:00:00.000Z"
+                        },
+                        "updatedAt": {
+                          "type": "string",
+                          "example": "2026-01-15T10:00:00.000Z"
+                        }
+                      },
+                      "required": [
+                        "_id",
+                        "userId",
+                        "items",
+                        "totalAmount",
+                        "shippingAddress",
+                        "createdAt",
+                        "updatedAt"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "message",
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Order not found"
+          }
+        }
+      }
+    },
+    "/products": {
+      "get": {
+        "tags": [
+          "Products - Public"
+        ],
+        "summary": "Browse the public product catalog",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "example": "1",
+              "description": "Page number (default 1)"
+            },
+            "required": false,
+            "description": "Page number (default 1)",
+            "name": "page",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "example": "10",
+              "description": "Items per page (default 10, max 100)"
+            },
+            "required": false,
+            "description": "Items per page (default 10, max 100)",
+            "name": "limit",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "example": "mouse",
+              "description": "Searches title and description"
+            },
+            "required": false,
+            "description": "Searches title and description",
+            "name": "search",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "title",
+                "price",
+                "date"
+              ],
+              "example": "date"
+            },
+            "required": false,
+            "name": "sortBy",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "asc",
+                "desc"
+              ],
+              "example": "desc"
+            },
+            "required": false,
+            "name": "sortOrder",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "example": "100",
+              "description": "Must be provided together with maxPrice"
+            },
+            "required": false,
+            "description": "Must be provided together with maxPrice",
+            "name": "minPrice",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "example": "1000",
+              "description": "Must be provided together with minPrice"
+            },
+            "required": false,
+            "description": "Must be provided together with minPrice",
+            "name": "maxPrice",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Products fetched successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Success"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "products": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "_id": {
+                                "type": "string",
+                                "example": "652f1c2e8b1d4e2a1c9e4b3a"
+                              },
+                              "title": {
+                                "type": "string",
+                                "example": "Wireless Mouse"
+                              },
+                              "price": {
+                                "type": "number",
+                                "example": 799
+                              },
+                              "description": {
+                                "type": "string",
+                                "example": "Ergonomic wireless mouse with USB receiver"
+                              },
+                              "imageURL": {
+                                "type": "string",
+                                "example": "https://example.com/images/mouse.jpg"
+                              },
+                              "stock": {
+                                "type": "number",
+                                "example": 25
+                              },
+                              "reviewCount": {
+                                "type": "number",
+                                "example": 12
+                              },
+                              "ratingSum": {
+                                "type": "number",
+                                "example": 54
+                              },
+                              "avgRating": {
+                                "type": "number",
+                                "example": 4.5
+                              },
+                              "createdAt": {
+                                "type": "string",
+                                "example": "2026-01-15T10:00:00.000Z"
+                              },
+                              "updatedAt": {
+                                "type": "string",
+                                "example": "2026-01-15T10:00:00.000Z"
+                              }
+                            },
+                            "required": [
+                              "_id",
+                              "title",
+                              "price",
+                              "description",
+                              "imageURL",
+                              "stock",
+                              "reviewCount",
+                              "ratingSum",
+                              "avgRating",
+                              "createdAt",
+                              "updatedAt"
+                            ]
+                          }
+                        },
+                        "pagination": {
+                          "type": "object",
+                          "properties": {
+                            "total": {
+                              "type": "number",
+                              "example": 42
+                            },
+                            "page": {
+                              "type": "number",
+                              "example": 1
+                            },
+                            "limit": {
+                              "type": "number",
+                              "example": 10
+                            },
+                            "totalPages": {
+                              "type": "number",
+                              "example": 5
+                            }
+                          },
+                          "required": [
+                            "total",
+                            "page",
+                            "limit",
+                            "totalPages"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "products",
+                        "pagination"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "message",
+                    "data"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/products/{id}": {
+      "get": {
+        "tags": [
+          "Products - Public"
+        ],
+        "summary": "Get a single catalog product by id",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "example": "652f1c2e8b1d4e2a1c9e4b3a",
+              "description": "Product id"
+            },
+            "required": true,
+            "description": "Product id",
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Product fetched successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Success"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "_id": {
+                          "type": "string",
+                          "example": "652f1c2e8b1d4e2a1c9e4b3a"
+                        },
+                        "title": {
+                          "type": "string",
+                          "example": "Wireless Mouse"
+                        },
+                        "price": {
+                          "type": "number",
+                          "example": 799
+                        },
+                        "description": {
+                          "type": "string",
+                          "example": "Ergonomic wireless mouse with USB receiver"
+                        },
+                        "imageURL": {
+                          "type": "string",
+                          "example": "https://example.com/images/mouse.jpg"
+                        },
+                        "stock": {
+                          "type": "number",
+                          "example": 25
+                        },
+                        "reviewCount": {
+                          "type": "number",
+                          "example": 12
+                        },
+                        "ratingSum": {
+                          "type": "number",
+                          "example": 54
+                        },
+                        "avgRating": {
+                          "type": "number",
+                          "example": 4.5
+                        },
+                        "createdAt": {
+                          "type": "string",
+                          "example": "2026-01-15T10:00:00.000Z"
+                        },
+                        "updatedAt": {
+                          "type": "string",
+                          "example": "2026-01-15T10:00:00.000Z"
+                        }
+                      },
+                      "required": [
+                        "_id",
+                        "title",
+                        "price",
+                        "description",
+                        "imageURL",
+                        "stock",
+                        "reviewCount",
+                        "ratingSum",
+                        "avgRating",
+                        "createdAt",
+                        "updatedAt"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "message",
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Product not found"
+          }
+        }
+      }
+    },
+    "/admin/products": {
+      "get": {
+        "tags": [
+          "Products - Admin"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "List the seller's own products (requires admin role)",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "example": "1",
+              "description": "Page number (default 1)"
+            },
+            "required": false,
+            "description": "Page number (default 1)",
+            "name": "page",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "example": "10",
+              "description": "Items per page (default 10, max 100)"
+            },
+            "required": false,
+            "description": "Items per page (default 10, max 100)",
+            "name": "limit",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "example": "mouse",
+              "description": "Searches title and description"
+            },
+            "required": false,
+            "description": "Searches title and description",
+            "name": "search",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "example": "title",
+              "description": "'title' or omitted (defaults to newest first)"
+            },
+            "required": false,
+            "description": "'title' or omitted (defaults to newest first)",
+            "name": "sortBy",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "asc",
+                "desc"
+              ],
+              "example": "desc"
+            },
+            "required": false,
+            "name": "sortOrder",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Products fetched successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Success"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "products": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "_id": {
+                                "type": "string",
+                                "example": "652f1c2e8b1d4e2a1c9e4b3a"
+                              },
+                              "userId": {
+                                "type": "string",
+                                "example": "652f1c2e8b1d4e2a1c9e4b3c"
+                              },
+                              "isDeleted": {
+                                "type": "boolean",
+                                "example": false
+                              },
+                              "title": {
+                                "type": "string",
+                                "example": "Wireless Mouse"
+                              },
+                              "price": {
+                                "type": "number",
+                                "example": 799
+                              },
+                              "description": {
+                                "type": "string",
+                                "example": "Ergonomic wireless mouse with USB receiver"
+                              },
+                              "imageURL": {
+                                "type": "string",
+                                "example": "https://example.com/images/mouse.jpg"
+                              },
+                              "stock": {
+                                "type": "number",
+                                "example": 25
+                              },
+                              "reviewCount": {
+                                "type": "number",
+                                "example": 12
+                              },
+                              "ratingSum": {
+                                "type": "number",
+                                "example": 54
+                              },
+                              "avgRating": {
+                                "type": "number",
+                                "example": 4.5
+                              },
+                              "createdAt": {
+                                "type": "string",
+                                "example": "2026-01-15T10:00:00.000Z"
+                              },
+                              "updatedAt": {
+                                "type": "string",
+                                "example": "2026-01-15T10:00:00.000Z"
+                              }
+                            },
+                            "required": [
+                              "_id",
+                              "userId",
+                              "isDeleted",
+                              "title",
+                              "price",
+                              "description",
+                              "imageURL",
+                              "stock",
+                              "reviewCount",
+                              "ratingSum",
+                              "avgRating",
+                              "createdAt",
+                              "updatedAt"
+                            ]
+                          }
+                        },
+                        "pagination": {
+                          "type": "object",
+                          "properties": {
+                            "total": {
+                              "type": "number",
+                              "example": 42
+                            },
+                            "page": {
+                              "type": "number",
+                              "example": 1
+                            },
+                            "limit": {
+                              "type": "number",
+                              "example": 10
+                            },
+                            "totalPages": {
+                              "type": "number",
+                              "example": 5
+                            }
+                          },
+                          "required": [
+                            "total",
+                            "page",
+                            "limit",
+                            "totalPages"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "products",
+                        "pagination"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "message",
+                    "data"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Products - Admin"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "Create a product (requires admin role)",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "title": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "price": {
+                    "type": "number",
+                    "minimum": 0
+                  },
+                  "description": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "imageURL": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "stock": {
+                    "type": "number",
+                    "minimum": 0
+                  }
+                },
+                "required": [
+                  "title",
+                  "price",
+                  "description",
+                  "imageURL",
+                  "stock"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Product created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Success"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "_id": {
+                          "type": "string",
+                          "example": "652f1c2e8b1d4e2a1c9e4b3a"
+                        },
+                        "userId": {
+                          "type": "string",
+                          "example": "652f1c2e8b1d4e2a1c9e4b3c"
+                        },
+                        "isDeleted": {
+                          "type": "boolean",
+                          "example": false
+                        },
+                        "title": {
+                          "type": "string",
+                          "example": "Wireless Mouse"
+                        },
+                        "price": {
+                          "type": "number",
+                          "example": 799
+                        },
+                        "description": {
+                          "type": "string",
+                          "example": "Ergonomic wireless mouse with USB receiver"
+                        },
+                        "imageURL": {
+                          "type": "string",
+                          "example": "https://example.com/images/mouse.jpg"
+                        },
+                        "stock": {
+                          "type": "number",
+                          "example": 25
+                        },
+                        "reviewCount": {
+                          "type": "number",
+                          "example": 12
+                        },
+                        "ratingSum": {
+                          "type": "number",
+                          "example": 54
+                        },
+                        "avgRating": {
+                          "type": "number",
+                          "example": 4.5
+                        },
+                        "createdAt": {
+                          "type": "string",
+                          "example": "2026-01-15T10:00:00.000Z"
+                        },
+                        "updatedAt": {
+                          "type": "string",
+                          "example": "2026-01-15T10:00:00.000Z"
+                        }
+                      },
+                      "required": [
+                        "_id",
+                        "userId",
+                        "isDeleted",
+                        "title",
+                        "price",
+                        "description",
+                        "imageURL",
+                        "stock",
+                        "reviewCount",
+                        "ratingSum",
+                        "avgRating",
+                        "createdAt",
+                        "updatedAt"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "message",
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid body"
+          }
+        }
+      }
+    },
+    "/admin/products/{id}": {
+      "get": {
+        "tags": [
+          "Products - Admin"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "Get one of the seller's own products by id (requires admin role)",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "example": "652f1c2e8b1d4e2a1c9e4b3a",
+              "description": "Product id"
+            },
+            "required": true,
+            "description": "Product id",
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Product fetched successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Success"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "_id": {
+                          "type": "string",
+                          "example": "652f1c2e8b1d4e2a1c9e4b3a"
+                        },
+                        "userId": {
+                          "type": "string",
+                          "example": "652f1c2e8b1d4e2a1c9e4b3c"
+                        },
+                        "isDeleted": {
+                          "type": "boolean",
+                          "example": false
+                        },
+                        "title": {
+                          "type": "string",
+                          "example": "Wireless Mouse"
+                        },
+                        "price": {
+                          "type": "number",
+                          "example": 799
+                        },
+                        "description": {
+                          "type": "string",
+                          "example": "Ergonomic wireless mouse with USB receiver"
+                        },
+                        "imageURL": {
+                          "type": "string",
+                          "example": "https://example.com/images/mouse.jpg"
+                        },
+                        "stock": {
+                          "type": "number",
+                          "example": 25
+                        },
+                        "reviewCount": {
+                          "type": "number",
+                          "example": 12
+                        },
+                        "ratingSum": {
+                          "type": "number",
+                          "example": 54
+                        },
+                        "avgRating": {
+                          "type": "number",
+                          "example": 4.5
+                        },
+                        "createdAt": {
+                          "type": "string",
+                          "example": "2026-01-15T10:00:00.000Z"
+                        },
+                        "updatedAt": {
+                          "type": "string",
+                          "example": "2026-01-15T10:00:00.000Z"
+                        }
+                      },
+                      "required": [
+                        "_id",
+                        "userId",
+                        "isDeleted",
+                        "title",
+                        "price",
+                        "description",
+                        "imageURL",
+                        "stock",
+                        "reviewCount",
+                        "ratingSum",
+                        "avgRating",
+                        "createdAt",
+                        "updatedAt"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "message",
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Product not found"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Products - Admin"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "Update one of the seller's own products (requires admin role)",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "example": "652f1c2e8b1d4e2a1c9e4b3a",
+              "description": "Product id"
+            },
+            "required": true,
+            "description": "Product id",
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "title": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "price": {
+                    "type": "number",
+                    "minimum": 0
+                  },
+                  "description": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "imageURL": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "stock": {
+                    "type": "number",
+                    "minimum": 0
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Product updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Success"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "_id": {
+                          "type": "string",
+                          "example": "652f1c2e8b1d4e2a1c9e4b3a"
+                        },
+                        "userId": {
+                          "type": "string",
+                          "example": "652f1c2e8b1d4e2a1c9e4b3c"
+                        },
+                        "isDeleted": {
+                          "type": "boolean",
+                          "example": false
+                        },
+                        "title": {
+                          "type": "string",
+                          "example": "Wireless Mouse"
+                        },
+                        "price": {
+                          "type": "number",
+                          "example": 799
+                        },
+                        "description": {
+                          "type": "string",
+                          "example": "Ergonomic wireless mouse with USB receiver"
+                        },
+                        "imageURL": {
+                          "type": "string",
+                          "example": "https://example.com/images/mouse.jpg"
+                        },
+                        "stock": {
+                          "type": "number",
+                          "example": 25
+                        },
+                        "reviewCount": {
+                          "type": "number",
+                          "example": 12
+                        },
+                        "ratingSum": {
+                          "type": "number",
+                          "example": 54
+                        },
+                        "avgRating": {
+                          "type": "number",
+                          "example": 4.5
+                        },
+                        "createdAt": {
+                          "type": "string",
+                          "example": "2026-01-15T10:00:00.000Z"
+                        },
+                        "updatedAt": {
+                          "type": "string",
+                          "example": "2026-01-15T10:00:00.000Z"
+                        }
+                      },
+                      "required": [
+                        "_id",
+                        "userId",
+                        "isDeleted",
+                        "title",
+                        "price",
+                        "description",
+                        "imageURL",
+                        "stock",
+                        "reviewCount",
+                        "ratingSum",
+                        "avgRating",
+                        "createdAt",
+                        "updatedAt"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "message",
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Product not found"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Products - Admin"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "Soft-delete one of the seller's own products (requires admin role)",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "example": "652f1c2e8b1d4e2a1c9e4b3a",
+              "description": "Product id"
+            },
+            "required": true,
+            "description": "Product id",
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Product deleted successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Success"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "_id": {
+                          "type": "string",
+                          "example": "652f1c2e8b1d4e2a1c9e4b3a"
+                        },
+                        "userId": {
+                          "type": "string",
+                          "example": "652f1c2e8b1d4e2a1c9e4b3c"
+                        },
+                        "isDeleted": {
+                          "type": "boolean",
+                          "example": false
+                        },
+                        "title": {
+                          "type": "string",
+                          "example": "Wireless Mouse"
+                        },
+                        "price": {
+                          "type": "number",
+                          "example": 799
+                        },
+                        "description": {
+                          "type": "string",
+                          "example": "Ergonomic wireless mouse with USB receiver"
+                        },
+                        "imageURL": {
+                          "type": "string",
+                          "example": "https://example.com/images/mouse.jpg"
+                        },
+                        "stock": {
+                          "type": "number",
+                          "example": 25
+                        },
+                        "reviewCount": {
+                          "type": "number",
+                          "example": 12
+                        },
+                        "ratingSum": {
+                          "type": "number",
+                          "example": 54
+                        },
+                        "avgRating": {
+                          "type": "number",
+                          "example": 4.5
+                        },
+                        "createdAt": {
+                          "type": "string",
+                          "example": "2026-01-15T10:00:00.000Z"
+                        },
+                        "updatedAt": {
+                          "type": "string",
+                          "example": "2026-01-15T10:00:00.000Z"
+                        }
+                      },
+                      "required": [
+                        "_id",
+                        "userId",
+                        "isDeleted",
+                        "title",
+                        "price",
+                        "description",
+                        "imageURL",
+                        "stock",
+                        "reviewCount",
+                        "ratingSum",
+                        "avgRating",
+                        "createdAt",
+                        "updatedAt"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "message",
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Product not found"
+          }
+        }
+      }
+    },
+    "/products/{productId}/reviews": {
+      "get": {
+        "tags": [
+          "Reviews"
+        ],
+        "summary": "List reviews for a product",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "example": "652f1c2e8b1d4e2a1c9e4b3a",
+              "description": "Product id"
+            },
+            "required": true,
+            "description": "Product id",
+            "name": "productId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "example": "1",
+              "description": "Page number (default 1)"
+            },
+            "required": false,
+            "description": "Page number (default 1)",
+            "name": "page",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "example": "10",
+              "description": "Items per page (default 10, max 100)"
+            },
+            "required": false,
+            "description": "Items per page (default 10, max 100)",
+            "name": "limit",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "example": "5",
+              "description": "Filter by exact rating (1-5)"
+            },
+            "required": false,
+            "description": "Filter by exact rating (1-5)",
+            "name": "rating",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "newest",
+                "rating_high",
+                "rating_low"
+              ],
+              "example": "newest",
+              "description": "Defaults to newest"
+            },
+            "required": false,
+            "description": "Defaults to newest",
+            "name": "sortBy",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Reviews fetched successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Success"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "reviews": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "_id": {
+                                "type": "string",
+                                "example": "652f1c2e8b1d4e2a1c9e4b3d"
+                              },
+                              "orderId": {
+                                "type": "string",
+                                "example": "652f1c2e8b1d4e2a1c9e4b3b"
+                              },
+                              "rating": {
+                                "type": "number",
+                                "example": 5
+                              },
+                              "title": {
+                                "type": "string",
+                                "example": "Great product"
+                              },
+                              "comment": {
+                                "type": "string",
+                                "example": "Works exactly as described, very happy with the purchase."
+                              },
+                              "createdAt": {
+                                "type": "string",
+                                "example": "2026-01-15T10:00:00.000Z"
+                              },
+                              "updatedAt": {
+                                "type": "string",
+                                "example": "2026-01-15T10:00:00.000Z"
+                              },
+                              "productId": {
+                                "type": "string",
+                                "example": "652f1c2e8b1d4e2a1c9e4b3a"
+                              },
+                              "userId": {
+                                "type": "object",
+                                "properties": {
+                                  "_id": {
+                                    "type": "string",
+                                    "example": "652f1c2e8b1d4e2a1c9e4b3c"
+                                  },
+                                  "name": {
+                                    "type": "string",
+                                    "example": "Jane Doe"
+                                  }
+                                },
+                                "required": [
+                                  "_id",
+                                  "name"
+                                ]
+                              }
+                            },
+                            "required": [
+                              "_id",
+                              "orderId",
+                              "rating",
+                              "comment",
+                              "createdAt",
+                              "updatedAt",
+                              "productId",
+                              "userId"
+                            ]
+                          }
+                        },
+                        "pagination": {
+                          "type": "object",
+                          "properties": {
+                            "total": {
+                              "type": "number",
+                              "example": 42
+                            },
+                            "page": {
+                              "type": "number",
+                              "example": 1
+                            },
+                            "limit": {
+                              "type": "number",
+                              "example": 10
+                            },
+                            "totalPages": {
+                              "type": "number",
+                              "example": 5
+                            }
+                          },
+                          "required": [
+                            "total",
+                            "page",
+                            "limit",
+                            "totalPages"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "reviews",
+                        "pagination"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "message",
+                    "data"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Reviews"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "Create a review for a product you have purchased",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "example": "652f1c2e8b1d4e2a1c9e4b3a",
+              "description": "Product id"
+            },
+            "required": true,
+            "description": "Product id",
+            "name": "productId",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "rating": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 5
+                  },
+                  "title": {
+                    "type": "string",
+                    "maxLength": 120
+                  },
+                  "comment": {
+                    "type": "string",
+                    "minLength": 10,
+                    "maxLength": 1000
+                  }
+                },
+                "required": [
+                  "rating",
+                  "comment"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Review created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Success"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "_id": {
+                          "type": "string",
+                          "example": "652f1c2e8b1d4e2a1c9e4b3d"
+                        },
+                        "orderId": {
+                          "type": "string",
+                          "example": "652f1c2e8b1d4e2a1c9e4b3b"
+                        },
+                        "rating": {
+                          "type": "number",
+                          "example": 5
+                        },
+                        "title": {
+                          "type": "string",
+                          "example": "Great product"
+                        },
+                        "comment": {
+                          "type": "string",
+                          "example": "Works exactly as described, very happy with the purchase."
+                        },
+                        "createdAt": {
+                          "type": "string",
+                          "example": "2026-01-15T10:00:00.000Z"
+                        },
+                        "updatedAt": {
+                          "type": "string",
+                          "example": "2026-01-15T10:00:00.000Z"
+                        },
+                        "productId": {
+                          "type": "string",
+                          "example": "652f1c2e8b1d4e2a1c9e4b3a"
+                        },
+                        "userId": {
+                          "type": "object",
+                          "properties": {
+                            "_id": {
+                              "type": "string",
+                              "example": "652f1c2e8b1d4e2a1c9e4b3c"
+                            },
+                            "name": {
+                              "type": "string",
+                              "example": "Jane Doe"
+                            }
+                          },
+                          "required": [
+                            "_id",
+                            "name"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "_id",
+                        "orderId",
+                        "rating",
+                        "comment",
+                        "createdAt",
+                        "updatedAt",
+                        "productId",
+                        "userId"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "message",
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "You can only review products you have purchased"
+          },
+          "404": {
+            "description": "Product not found"
+          },
+          "409": {
+            "description": "You have already reviewed this product"
+          }
+        }
+      }
+    },
+    "/products/{productId}/reviews/{reviewId}": {
+      "get": {
+        "tags": [
+          "Reviews"
+        ],
+        "summary": "Get a single review",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "example": "652f1c2e8b1d4e2a1c9e4b3a",
+              "description": "Product id"
+            },
+            "required": true,
+            "description": "Product id",
+            "name": "productId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "example": "652f1c2e8b1d4e2a1c9e4b3a",
+              "description": "Review id"
+            },
+            "required": true,
+            "description": "Review id",
+            "name": "reviewId",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Review fetched successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Success"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "_id": {
+                          "type": "string",
+                          "example": "652f1c2e8b1d4e2a1c9e4b3d"
+                        },
+                        "orderId": {
+                          "type": "string",
+                          "example": "652f1c2e8b1d4e2a1c9e4b3b"
+                        },
+                        "rating": {
+                          "type": "number",
+                          "example": 5
+                        },
+                        "title": {
+                          "type": "string",
+                          "example": "Great product"
+                        },
+                        "comment": {
+                          "type": "string",
+                          "example": "Works exactly as described, very happy with the purchase."
+                        },
+                        "createdAt": {
+                          "type": "string",
+                          "example": "2026-01-15T10:00:00.000Z"
+                        },
+                        "updatedAt": {
+                          "type": "string",
+                          "example": "2026-01-15T10:00:00.000Z"
+                        },
+                        "productId": {
+                          "type": "string",
+                          "example": "652f1c2e8b1d4e2a1c9e4b3a"
+                        },
+                        "userId": {
+                          "type": "object",
+                          "properties": {
+                            "_id": {
+                              "type": "string",
+                              "example": "652f1c2e8b1d4e2a1c9e4b3c"
+                            },
+                            "name": {
+                              "type": "string",
+                              "example": "Jane Doe"
+                            }
+                          },
+                          "required": [
+                            "_id",
+                            "name"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "_id",
+                        "orderId",
+                        "rating",
+                        "comment",
+                        "createdAt",
+                        "updatedAt",
+                        "productId",
+                        "userId"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "message",
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Review not found"
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "Reviews"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "Update your own review",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "example": "652f1c2e8b1d4e2a1c9e4b3a",
+              "description": "Product id"
+            },
+            "required": true,
+            "description": "Product id",
+            "name": "productId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "example": "652f1c2e8b1d4e2a1c9e4b3a",
+              "description": "Review id"
+            },
+            "required": true,
+            "description": "Review id",
+            "name": "reviewId",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "rating": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 5
+                  },
+                  "title": {
+                    "type": "string",
+                    "maxLength": 120
+                  },
+                  "comment": {
+                    "type": "string",
+                    "minLength": 10,
+                    "maxLength": 1000
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Review updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Success"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "_id": {
+                          "type": "string",
+                          "example": "652f1c2e8b1d4e2a1c9e4b3d"
+                        },
+                        "orderId": {
+                          "type": "string",
+                          "example": "652f1c2e8b1d4e2a1c9e4b3b"
+                        },
+                        "rating": {
+                          "type": "number",
+                          "example": 5
+                        },
+                        "title": {
+                          "type": "string",
+                          "example": "Great product"
+                        },
+                        "comment": {
+                          "type": "string",
+                          "example": "Works exactly as described, very happy with the purchase."
+                        },
+                        "createdAt": {
+                          "type": "string",
+                          "example": "2026-01-15T10:00:00.000Z"
+                        },
+                        "updatedAt": {
+                          "type": "string",
+                          "example": "2026-01-15T10:00:00.000Z"
+                        },
+                        "productId": {
+                          "type": "string",
+                          "example": "652f1c2e8b1d4e2a1c9e4b3a"
+                        },
+                        "userId": {
+                          "type": "object",
+                          "properties": {
+                            "_id": {
+                              "type": "string",
+                              "example": "652f1c2e8b1d4e2a1c9e4b3c"
+                            },
+                            "name": {
+                              "type": "string",
+                              "example": "Jane Doe"
+                            }
+                          },
+                          "required": [
+                            "_id",
+                            "name"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "_id",
+                        "orderId",
+                        "rating",
+                        "comment",
+                        "createdAt",
+                        "updatedAt",
+                        "productId",
+                        "userId"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "message",
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "You can only modify your own review"
+          },
+          "404": {
+            "description": "Review not found"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Reviews"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "Delete your own review",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "example": "652f1c2e8b1d4e2a1c9e4b3a",
+              "description": "Product id"
+            },
+            "required": true,
+            "description": "Product id",
+            "name": "productId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "example": "652f1c2e8b1d4e2a1c9e4b3a",
+              "description": "Review id"
+            },
+            "required": true,
+            "description": "Review id",
+            "name": "reviewId",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Review deleted successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Success"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "_id": {
+                          "type": "string",
+                          "example": "652f1c2e8b1d4e2a1c9e4b3d"
+                        },
+                        "orderId": {
+                          "type": "string",
+                          "example": "652f1c2e8b1d4e2a1c9e4b3b"
+                        },
+                        "rating": {
+                          "type": "number",
+                          "example": 5
+                        },
+                        "title": {
+                          "type": "string",
+                          "example": "Great product"
+                        },
+                        "comment": {
+                          "type": "string",
+                          "example": "Works exactly as described, very happy with the purchase."
+                        },
+                        "createdAt": {
+                          "type": "string",
+                          "example": "2026-01-15T10:00:00.000Z"
+                        },
+                        "updatedAt": {
+                          "type": "string",
+                          "example": "2026-01-15T10:00:00.000Z"
+                        },
+                        "productId": {
+                          "type": "string",
+                          "example": "652f1c2e8b1d4e2a1c9e4b3a"
+                        },
+                        "userId": {
+                          "type": "object",
+                          "properties": {
+                            "_id": {
+                              "type": "string",
+                              "example": "652f1c2e8b1d4e2a1c9e4b3c"
+                            },
+                            "name": {
+                              "type": "string",
+                              "example": "Jane Doe"
+                            }
+                          },
+                          "required": [
+                            "_id",
+                            "name"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "_id",
+                        "orderId",
+                        "rating",
+                        "comment",
+                        "createdAt",
+                        "updatedAt",
+                        "productId",
+                        "userId"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "message",
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "You can only modify your own review"
+          },
+          "404": {
+            "description": "Review not found"
+          }
+        }
+      }
+    },
+    "/users/me/reviews": {
+      "get": {
+        "tags": [
+          "Reviews"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "List the current user's reviews",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "example": "1",
+              "description": "Page number (default 1)"
+            },
+            "required": false,
+            "description": "Page number (default 1)",
+            "name": "page",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "example": "10",
+              "description": "Items per page (default 10, max 100)"
+            },
+            "required": false,
+            "description": "Items per page (default 10, max 100)",
+            "name": "limit",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Reviews fetched successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Success"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "reviews": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "_id": {
+                                "type": "string",
+                                "example": "652f1c2e8b1d4e2a1c9e4b3d"
+                              },
+                              "orderId": {
+                                "type": "string",
+                                "example": "652f1c2e8b1d4e2a1c9e4b3b"
+                              },
+                              "rating": {
+                                "type": "number",
+                                "example": 5
+                              },
+                              "title": {
+                                "type": "string",
+                                "example": "Great product"
+                              },
+                              "comment": {
+                                "type": "string",
+                                "example": "Works exactly as described, very happy with the purchase."
+                              },
+                              "createdAt": {
+                                "type": "string",
+                                "example": "2026-01-15T10:00:00.000Z"
+                              },
+                              "updatedAt": {
+                                "type": "string",
+                                "example": "2026-01-15T10:00:00.000Z"
+                              },
+                              "userId": {
+                                "type": "string",
+                                "example": "652f1c2e8b1d4e2a1c9e4b3c"
+                              },
+                              "productId": {
+                                "type": "object",
+                                "properties": {
+                                  "_id": {
+                                    "type": "string",
+                                    "example": "652f1c2e8b1d4e2a1c9e4b3a"
+                                  },
+                                  "title": {
+                                    "type": "string",
+                                    "example": "Wireless Mouse"
+                                  },
+                                  "imageURL": {
+                                    "type": "string",
+                                    "example": "https://example.com/images/mouse.jpg"
+                                  }
+                                },
+                                "required": [
+                                  "_id",
+                                  "title",
+                                  "imageURL"
+                                ]
+                              }
+                            },
+                            "required": [
+                              "_id",
+                              "orderId",
+                              "rating",
+                              "comment",
+                              "createdAt",
+                              "updatedAt",
+                              "userId",
+                              "productId"
+                            ]
+                          }
+                        },
+                        "pagination": {
+                          "type": "object",
+                          "properties": {
+                            "total": {
+                              "type": "number",
+                              "example": 42
+                            },
+                            "page": {
+                              "type": "number",
+                              "example": 1
+                            },
+                            "limit": {
+                              "type": "number",
+                              "example": 10
+                            },
+                            "totalPages": {
+                              "type": "number",
+                              "example": 5
+                            }
+                          },
+                          "required": [
+                            "total",
+                            "page",
+                            "limit",
+                            "totalPages"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "reviews",
+                        "pagination"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "message",
+                    "data"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
