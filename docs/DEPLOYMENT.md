@@ -75,28 +75,28 @@ setup is untouched.
 
 Note the URL. Interactive API docs are at `https://YOUR-API.onrender.com/api-docs/`.
 
-## 3b. Email — Brevo (or any SMTP)
+## 3b. Email — Brevo
 
-Password reset sends a real email. Without SMTP credentials the endpoint returns 503 in
+Password reset sends a real email. Without this configured, the endpoint returns 503 in
 production, so this step is not optional if you want reset to work.
+
+This uses Brevo's HTTP API, not SMTP. Brevo's SMTP relay only accepts logins from IPs it has
+already seen, and Render has no fixed outbound IP to ever add to that allowlist — every
+connection from a freshly started instance gets rejected as unrecognised. The HTTP API
+authenticates with a key in a header instead, so the source IP is irrelevant.
 
 Brevo's free tier allows 300 emails a day, needs no card and no domain:
 
 1. Sign up at <https://www.brevo.com>.
-2. **SMTP & API → SMTP** and copy the server, port, login, and master password.
-3. Add these to your Render service's environment:
+2. Left sidebar → **SMTP & API** → **API Keys** tab → **Generate a new API key** → copy it.
+3. **Senders & Domains** → **Add a Sender** → an email address you actually control → verify
+   it via the confirmation email Brevo sends. Delivery is rejected otherwise.
+4. Add these to your Render service's environment:
 
    | Variable | Value |
    | --- | --- |
-   | `SMTP_HOST` | `smtp-relay.brevo.com` |
-   | `SMTP_PORT` | `587` |
-   | `SMTP_USER` | the login Brevo shows (an address, not your account email) |
-   | `SMTP_PASS` | the master password |
-   | `MAIL_FROM` | `E-commerce Demo <your-verified-sender@example.com>` |
-
-Brevo requires the `MAIL_FROM` address to be a verified sender — add it under
-**Senders & Domains** first, or delivery is rejected. Any other SMTP provider works
-identically; nothing in the code is Brevo-specific.
+   | `BREVO_API_KEY` | the key from step 2 |
+   | `MAIL_FROM` | `E-commerce Demo <your-verified-sender@example.com>` — must match step 3 |
 
 > Skipping this is fine if nobody needs password reset. Everything else works, and the two
 > seeded accounts have known passwords.
@@ -145,10 +145,11 @@ preview URL when you need one, or just test on production.
 
 **Atlas pauses an idle M0 after 60 days.** Resume it from the dashboard; no data is lost.
 
-**Password reset needs SMTP.** Without `SMTP_*` set, the endpoint returns 503 in production —
-it will not fall back to handing the code to the caller, because that lets anyone holding an
-address take the account. Step 3b sets it up. Note also that the endpoint answers unknown
-addresses exactly as it answers known ones, so "no email arrived" is not a diagnostic.
+**Password reset needs `BREVO_API_KEY`.** Without it, the endpoint returns 503 in
+production — it will not fall back to handing the code to the caller, because that lets
+anyone holding an address take the account. Step 3b sets it up. Note also that the endpoint
+answers unknown addresses exactly as it answers known ones, so "no email arrived" is not a
+diagnostic.
 
 **Logs are ephemeral.** Winston writes files under `logs/`, which vanish on every deploy and
 restart. Render's own log viewer is the real one.
