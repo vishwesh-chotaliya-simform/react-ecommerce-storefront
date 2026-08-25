@@ -53,11 +53,12 @@ export default function ForgotPasswordPage() {
         <CardContent className="space-y-6">
           {issued ? (
             <>
-              {/* The code comes back in the response only in development, where no SMTP is
-                  configured — then it is shown here so the flow is usable without a mailbox.
-                  Otherwise it was emailed, and the wording stays deliberately non-committal
-                  about whether the address has an account, matching an API that answers
-                  unknown addresses exactly as it answers known ones. */}
+              {/* The code comes back in the response only in development, where no email
+                  provider is configured — then it is shown here so the flow is usable
+                  without a mailbox. Otherwise it was emailed, and the wording stays
+                  deliberately non-committal about whether the address has an account,
+                  matching an API that answers unknown addresses exactly as it answers
+                  known ones. */}
               {issued.otp ? (
                 <SuccessAlert title={`Reset code: ${issued.otp}`}>
                   Returned directly by the API — no email is sent.
