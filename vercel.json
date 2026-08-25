@@ -5,7 +5,6 @@
   "outputDirectory": "dist",
   "rewrites": [
     {
-      "//": "Client-side routing: every path that is not a real file serves index.html, so a deep link like /orders/abc123 or a browser refresh does not 404.",
       "source": "/((?!assets/).*)",
       "destination": "/index.html"
     }
