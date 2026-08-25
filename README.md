@@ -142,6 +142,7 @@ Four rules hold the structure together:
 | --- | --- |
 | `CLAUDE.md` | API contracts, backend quirks, stack decisions, conventions |
 | `docs/PROJECT-WRITEUP.md` | How the project was built, and the React concepts it covers |
+| `docs/DEPLOYMENT.md` | Free-tier deployment: Atlas, Render, Vercel |
 | `docs/ROADMAP.md` | The eight build phases |
 | `docs/PROMPTS.md` | Per-phase session prompts and acceptance checks |
 | `docs/openapi.json` | Spec extracted from the backend's `openApiDocument` |
