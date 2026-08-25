@@ -328,7 +328,10 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Request a password-reset OTP */
+        /**
+         * Request a password-reset OTP
+         * @description Always answers 200, whether or not the address has an account — a different answer for unknown addresses would let anyone test an address list against this endpoint. When SMTP is configured the code is emailed and never returned; without SMTP it is returned in development and the request is refused in production.
+         */
         post: {
             parameters: {
                 query?: never;
@@ -345,7 +348,7 @@ export interface paths {
                 };
             };
             responses: {
-                /** @description OTP generated successfully */
+                /** @description Accepted. A code was emailed if the address has an account. */
                 200: {
                     headers: {
                         [name: string]: unknown;
@@ -358,7 +361,7 @@ export interface paths {
                             message: string;
                             data: {
                                 /**
-                                 * @description Dev and test only. Omitted in production, where the OTP is written to the server log instead.
+                                 * @description Development fallback, present only when no SMTP is configured. Omitted whenever the code was emailed.
                                  * @example 482913
                                  */
                                 otp?: string;
@@ -368,8 +371,8 @@ export interface paths {
                         };
                     };
                 };
-                /** @description User not found with this email */
-                404: {
+                /** @description Production deployment with no SMTP configured */
+                503: {
                     headers: {
                         [name: string]: unknown;
                     };

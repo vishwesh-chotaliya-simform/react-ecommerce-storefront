@@ -588,6 +588,7 @@
           "Users"
         ],
         "summary": "Request a password-reset OTP",
+        "description": "Always answers 200, whether or not the address has an account — a different answer for unknown addresses would let anyone test an address list against this endpoint. When SMTP is configured the code is emailed and never returned; without SMTP it is returned in development and the request is refused in production.",
         "requestBody": {
           "content": {
             "application/json": {
@@ -608,7 +609,7 @@
         },
         "responses": {
           "200": {
-            "description": "OTP generated successfully",
+            "description": "Accepted. A code was emailed if the address has an account.",
             "content": {
               "application/json": {
                 "schema": {
@@ -628,7 +629,7 @@
                         "otp": {
                           "type": "string",
                           "example": "482913",
-                          "description": "Dev and test only. Omitted in production, where the OTP is written to the server log instead."
+                          "description": "Development fallback, present only when no SMTP is configured. Omitted whenever the code was emailed."
                         },
                         "expiresInMinutes": {
                           "type": "number",
@@ -649,8 +650,8 @@
               }
             }
           },
-          "404": {
-            "description": "User not found with this email"
+          "503": {
+            "description": "Production deployment with no SMTP configured"
           }
         }
       }

@@ -53,17 +53,18 @@ export default function ForgotPasswordPage() {
         <CardContent className="space-y-6">
           {issued ? (
             <>
-              {/* No mailer is wired up. In development the API hands the code back and it is
-                  shown here; in production it is withheld and written to the server log
-                  instead, so there is nothing to display and the field starts empty. */}
+              {/* The code comes back in the response only in development, where no SMTP is
+                  configured — then it is shown here so the flow is usable without a mailbox.
+                  Otherwise it was emailed, and the wording stays deliberately non-committal
+                  about whether the address has an account, matching an API that answers
+                  unknown addresses exactly as it answers known ones. */}
               {issued.otp ? (
                 <SuccessAlert title={`Reset code: ${issued.otp}`}>
                   Returned directly by the API — no email is sent.
                 </SuccessAlert>
               ) : (
-                <SuccessAlert title="Reset code issued">
-                  No email provider is wired up, and the hosted API does not return the code — it is
-                  not recoverable here. Use the demo accounts shown on the sign-in page.
+                <SuccessAlert title="Check your email">
+                  If that address has an account, a six-digit code is on its way. Enter it below.
                 </SuccessAlert>
               )}
 

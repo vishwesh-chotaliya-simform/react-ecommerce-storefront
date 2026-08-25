@@ -120,8 +120,11 @@ they created, not the whole catalog. A second admin account starts with an empty
 - **`POST /users/change-password` returns a NEW token** and bumps `tokenVersion`, killing the
   one you hold. Store the returned token or the user is signed out the instant they change their
   password. (No client for this endpoint yet — it belongs with account settings.)
-- **`POST /users/forgot-password` returns the OTP in the response** — deliberate, no mailer wired
-  up. The reset screen can display it in dev.
+- **`POST /users/forgot-password` always answers 200**, whether or not the address has an
+  account — a different answer would let anyone test an address list against it. The code is
+  emailed when SMTP is configured; with no SMTP it comes back in the response in development
+  and the endpoint returns 503 in production. So `otp` in the response is optional: when it is
+  absent, tell the user to check their email rather than implying the account exists.
 
 ## Stack
 

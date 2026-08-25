@@ -75,6 +75,32 @@ setup is untouched.
 
 Note the URL. Interactive API docs are at `https://YOUR-API.onrender.com/api-docs/`.
 
+## 3b. Email — Brevo (or any SMTP)
+
+Password reset sends a real email. Without SMTP credentials the endpoint returns 503 in
+production, so this step is not optional if you want reset to work.
+
+Brevo's free tier allows 300 emails a day, needs no card and no domain:
+
+1. Sign up at <https://www.brevo.com>.
+2. **SMTP & API → SMTP** and copy the server, port, login, and master password.
+3. Add these to your Render service's environment:
+
+   | Variable | Value |
+   | --- | --- |
+   | `SMTP_HOST` | `smtp-relay.brevo.com` |
+   | `SMTP_PORT` | `587` |
+   | `SMTP_USER` | the login Brevo shows (an address, not your account email) |
+   | `SMTP_PASS` | the master password |
+   | `MAIL_FROM` | `E-commerce Demo <your-verified-sender@example.com>` |
+
+Brevo requires the `MAIL_FROM` address to be a verified sender — add it under
+**Senders & Domains** first, or delivery is rejected. Any other SMTP provider works
+identically; nothing in the code is Brevo-specific.
+
+> Skipping this is fine if nobody needs password reset. Everything else works, and the two
+> seeded accounts have known passwords.
+
 ## 4. Frontend — Vercel
 
 1. Sign up at <https://vercel.com> with GitHub. No card.
@@ -119,12 +145,10 @@ preview URL when you need one, or just test on production.
 
 **Atlas pauses an idle M0 after 60 days.** Resume it from the dashboard; no data is lost.
 
-**Password reset cannot be completed in production.** The API stops returning the OTP once
-`NODE_ENV=production`, because returning it lets anyone who knows an email address take over
-that account. It is not logged either — that would just relocate a live credential into
-somewhere exported, shipped, and screenshotted. So until a real email provider is wired in,
-the hosted deployment has no way to finish a reset. If a demo account gets locked out, re-run
-the seed (step 2); it recreates both accounts with their known passwords.
+**Password reset needs SMTP.** Without `SMTP_*` set, the endpoint returns 503 in production —
+it will not fall back to handing the code to the caller, because that lets anyone holding an
+address take the account. Step 3b sets it up. Note also that the endpoint answers unknown
+addresses exactly as it answers known ones, so "no email arrived" is not a diagnostic.
 
 **Logs are ephemeral.** Winston writes files under `logs/`, which vanish on every deploy and
 restart. Render's own log viewer is the real one.
