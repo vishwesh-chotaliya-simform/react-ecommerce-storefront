@@ -119,10 +119,12 @@ preview URL when you need one, or just test on production.
 
 **Atlas pauses an idle M0 after 60 days.** Resume it from the dashboard; no data is lost.
 
-**Password reset shows no code in production.** The API deliberately stops returning the OTP
-once `NODE_ENV=production`, because returning it lets anyone who knows an email address take
-over that account. It is written to the Render logs instead — search them for
-`Password reset OTP issued`.
+**Password reset cannot be completed in production.** The API stops returning the OTP once
+`NODE_ENV=production`, because returning it lets anyone who knows an email address take over
+that account. It is not logged either — that would just relocate a live credential into
+somewhere exported, shipped, and screenshotted. So until a real email provider is wired in,
+the hosted deployment has no way to finish a reset. If a demo account gets locked out, re-run
+the seed (step 2); it recreates both accounts with their known passwords.
 
 **Logs are ephemeral.** Winston writes files under `logs/`, which vanish on every deploy and
 restart. Render's own log viewer is the real one.

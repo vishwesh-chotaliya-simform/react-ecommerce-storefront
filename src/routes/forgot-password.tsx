@@ -62,8 +62,8 @@ export default function ForgotPasswordPage() {
                 </SuccessAlert>
               ) : (
                 <SuccessAlert title="Reset code issued">
-                  This demo sends no email. The code was written to the server log — ask whoever
-                  runs the deployment for it.
+                  No email provider is wired up, and the hosted API does not return the code — it is
+                  not recoverable here. Use the demo accounts shown on the sign-in page.
                 </SuccessAlert>
               )}
 
