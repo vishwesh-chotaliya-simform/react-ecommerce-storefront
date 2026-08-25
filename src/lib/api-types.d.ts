@@ -358,10 +358,10 @@ export interface paths {
                             message: string;
                             data: {
                                 /**
-                                 * @description Temporary stand-in until email delivery is wired up
+                                 * @description Dev and test only. Omitted in production, where the OTP is written to the server log instead.
                                  * @example 482913
                                  */
-                                otp: string;
+                                otp?: string;
                                 /** @example 10 */
                                 expiresInMinutes: number;
                             };

@@ -19,7 +19,12 @@ import { FormAlert } from './form-alert';
 
 const FIELDS = ['email'] as const;
 
-export function ForgotPasswordForm({ onSent }: { onSent: (email: string, otp: string) => void }) {
+export function ForgotPasswordForm({
+  onSent,
+}: {
+  /** `otp` is undefined in production, where the API keeps it out of the response. */
+  onSent: (email: string, otp: string | undefined) => void;
+}) {
   const forgotPassword = useForgotPassword();
 
   const form = useForm<ForgotPasswordValues>({

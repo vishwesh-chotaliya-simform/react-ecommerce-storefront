@@ -10,7 +10,11 @@ import { useDocumentTitle } from '@/lib/use-document-title';
 
 interface IssuedOtp {
   email: string;
-  otp: string;
+  /**
+   * Undefined against a production API, which stops returning the code so that knowing an
+   * email address is not enough to take over the account. There it goes to the server log.
+   */
+  otp: string | undefined;
 }
 
 export default function ForgotPasswordPage() {
@@ -49,15 +53,23 @@ export default function ForgotPasswordPage() {
         <CardContent className="space-y-6">
           {issued ? (
             <>
-              {/* The backend has no mailer wired up and returns the OTP in the response body,
-                  so in development the only place to read it is here. */}
-              <SuccessAlert title={`Reset code: ${issued.otp}`}>
-                Returned directly by the API — no email is sent.
-              </SuccessAlert>
+              {/* No mailer is wired up. In development the API hands the code back and it is
+                  shown here; in production it is withheld and written to the server log
+                  instead, so there is nothing to display and the field starts empty. */}
+              {issued.otp ? (
+                <SuccessAlert title={`Reset code: ${issued.otp}`}>
+                  Returned directly by the API — no email is sent.
+                </SuccessAlert>
+              ) : (
+                <SuccessAlert title="Reset code issued">
+                  This demo sends no email. The code was written to the server log — ask whoever
+                  runs the deployment for it.
+                </SuccessAlert>
+              )}
 
               <ResetPasswordForm
                 defaultEmail={issued.email}
-                defaultOtp={issued.otp}
+                defaultOtp={issued.otp ?? ''}
                 onSuccess={() => setDone(true)}
               />
             </>

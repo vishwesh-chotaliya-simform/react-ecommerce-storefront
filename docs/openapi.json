@@ -628,7 +628,7 @@
                         "otp": {
                           "type": "string",
                           "example": "482913",
-                          "description": "Temporary stand-in until email delivery is wired up"
+                          "description": "Dev and test only. Omitted in production, where the OTP is written to the server log instead."
                         },
                         "expiresInMinutes": {
                           "type": "number",
@@ -636,7 +636,6 @@
                         }
                       },
                       "required": [
-                        "otp",
                         "expiresInMinutes"
                       ]
                     }

@@ -1,11 +1,13 @@
 import type { UseQueryResult } from '@tanstack/react-query';
 
 import { BusyIndicator, LoadingStatus } from '@/components/busy-indicator';
+import { ColdStartNotice } from '@/components/cold-start-notice';
 import { EmptyState, ErrorState } from '@/components/error-state';
 import { PaginationControls } from '@/components/pagination-controls';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { formatCount } from '@/lib/format';
+import { useSlowLoad } from '@/lib/use-slow-load';
 
 import { DEFAULT_PAGE_SIZE, useProducts } from '../api';
 import type { ProductListResult } from '../types';
@@ -37,10 +39,19 @@ interface ResultsProps {
 
 function Results({ catalog, query }: ResultsProps) {
   const { data, isPending, isError, error, isFetching } = query;
+  // The catalog is the first request the app makes, so a sleeping API shows up here first.
+  const wakingServer = useSlowLoad(isPending);
   // `isPending` means there is nothing to show yet — a first load or a filter combination
   // never fetched before. Paging and refiltering keep the previous page on screen instead
   // (`placeholderData: keepPreviousData`), so the grid dims rather than collapsing.
-  if (isPending) return <ProductGridSkeleton />;
+  if (isPending) {
+    return (
+      <div className="space-y-6">
+        {wakingServer && <ColdStartNotice />}
+        <ProductGridSkeleton />
+      </div>
+    );
+  }
 
   if (isError) {
     return (
